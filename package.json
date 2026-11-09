@@ -1,0 +1,13 @@
+{
+  "name": "khabar",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Khabar: the day's news, one card at a time. Chronological, never ranked.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

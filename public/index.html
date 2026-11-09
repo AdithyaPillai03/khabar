@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Khabar</title>
+  <meta name="description" content="The day's news from India and the world, one card at a time. Newest first, never ranked.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=chillax@500,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="bar" id="bar">
+    <div class="bar__inner">
+      <a class="wordmark" href="./" aria-label="Khabar, back to the top">Khabar</a>
+
+      <div class="regions" role="radiogroup" aria-label="Which news">
+        <button type="button" role="radio" class="pill" data-region="all" aria-checked="true">All</button>
+        <button type="button" role="radio" class="pill" data-region="india" aria-checked="false">India</button>
+        <button type="button" role="radio" class="pill" data-region="world" aria-checked="false">World</button>
+      </div>
+
+      <div class="bar__end">
+        <button type="button" class="gentle" id="gentle" aria-pressed="true" title="Gives a heads-up before stories about violence or loss">
+          Gentle<span class="gentle__word"> mode</span> <span class="gentle__state" id="gentle-state">on</span>
+        </button>
+        <button type="button" class="refresh" id="refresh" aria-label="Refresh the news" title="Refresh the news">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>
+        </button>
+        <button type="button" class="streak" id="streak-btn" aria-describedby="streak-tip">
+          <svg class="ring" viewBox="0 0 36 36" aria-hidden="true">
+            <circle class="ring__track" cx="18" cy="18" r="15"></circle>
+            <circle class="ring__fill" id="ring-fill" cx="18" cy="18" r="15" pathLength="100"></circle>
+          </svg>
+          <span class="streak__num num" id="streak-num">0</span>
+          <span class="streak__unit" id="streak-unit">day streak</span>
+        </button>
+        <span class="visually-hidden" id="streak-tip" role="status" aria-live="polite"></span>
+      </div>
+    </div>
+  </header>
+  <div class="bar__fringe" aria-hidden="true"></div>
+  <button type="button" class="fresh" id="fresh" hidden></button>
+
+  <main class="feed" id="feed" tabindex="-1" aria-label="Stories, newest first" aria-busy="true">
+    <section class="slide" aria-label="Loading stories">
+      <article class="card card--skeleton" aria-hidden="true">
+        <div class="frame sk"></div>
+        <div class="card__body">
+          <div class="sk sk--line sk--short"></div>
+          <div class="sk sk--head"></div>
+          <div class="sk sk--head sk--mid"></div>
+          <div class="sk sk--line"></div>
+          <div class="sk sk--line"></div>
+        </div>
+      </article>
+    </section>
+    <noscript>
+      <section class="slide"><article class="card"><div class="card__body"><h1 class="card__title">Khabar needs JavaScript to fetch the news.</h1><p class="card__summary">Turn it on and reload, and the day’s stories will appear here, one card at a time.</p></div></article></section>
+    </noscript>
+  </main>
+
+  <p class="hint" id="hint">Swipe up, scroll or press the arrow keys for the next story.</p>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <template id="tpl-story">
+    <section class="slide">
+      <article class="card">
+        <a class="frame" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"></a>
+        <div class="card__body">
+          <p class="card__meta"><span class="card__source"></span> <time class="card__time"></time></p>
+          <h2 class="card__title"></h2>
+          <p class="card__summary"></p>
+          <div class="card__foot">
+            <a class="card__link" target="_blank" rel="noopener">Read the full story</a>
+            <span class="card__end"><span class="tag-new" hidden>New since your last visit</span> <span class="card__count num"></span></span>
+          </div>
+        </div>
+        <div class="cover" hidden>
+          <p class="cover__text">Heads up: this story mentions violence or loss.</p>
+          <button type="button" class="btn btn--secondary cover__btn">Show the story</button>
+        </div>
+      </article>
+    </section>
+  </template>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
