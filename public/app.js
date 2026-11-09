@@ -69,14 +69,22 @@ function renderStreak() {
   $("#streak-btn").setAttribute("aria-label", tip);
 }
 
-let toastTimer;
+// Messages queue up so one never wipes out another (e.g. "Feed refreshed" then "Streak kept").
+const toasts = [];
+let toastBusy = false;
 function toast(msg) {
+  toasts.push(msg);
+  if (!toastBusy) nextToast();
+}
+function nextToast() {
   const t = $("#toast");
+  const msg = toasts.shift();
+  if (!msg) { toastBusy = false; t.hidden = true; return; }
+  toastBusy = true;
   t.textContent = msg;
   t.hidden = false;
   t.style.animation = "none"; void t.offsetWidth; t.style.animation = "";
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => (t.hidden = true), 3200);
+  setTimeout(nextToast, 3000);
 }
 
 function markRead(id) {
@@ -128,6 +136,7 @@ function ago(ts) {
 
 // ---------- rendering ----------
 const tpl = $("#tpl-story");
+const justIn = new Set(); // stories that arrived with the last refresh
 
 // A cut-paper cover in the story's topic colour, for stories with no photo. Costs nothing to serve.
 function coverArt(item) {
@@ -163,7 +172,9 @@ function storySlide(item, i, total) {
   $(".card__source", s).textContent = item.source;
   const time = $(".card__time", s);
   if (item.date) { time.dateTime = new Date(item.date).toISOString(); time.textContent = ago(item.date); }
-  if (prevVisit && item.date && item.date > prevVisit) $(".tag-new", s).hidden = false;
+  const tagNew = $(".tag-new", s);
+  if (justIn.has(item.id)) { tagNew.textContent = "Just in"; tagNew.hidden = false; }
+  else if (prevVisit && item.date && item.date > prevVisit) tagNew.hidden = false;
   $(".card__title", s).textContent = item.title;
   $(".card__summary", s).textContent = item.summary;
   const link = $(".card__link", s);
@@ -326,13 +337,17 @@ const countNew = (data) => {
 let pending = null, refreshing = false;
 const freshBtn = $("#fresh"), refreshBtn = $("#refresh");
 
-function apply(data, n) {
+function apply(data) {
+  const have = new Set((all?.items || []).map((i) => i.id));
+  justIn.clear();
+  for (const i of data.items) if (!have.has(i.id)) justIn.add(i.id);
+  const n = inRegion(data.items).filter((i) => justIn.has(i.id)).length;
   all = data;
   pending = null;
   freshBtn.hidden = true;
   render();
   go(0);
-  toast(n ? `${n} new ${n === 1 ? "story" : "stories"} at the top.` : "You're up to date.");
+  toast(n ? `Feed refreshed: ${n} new ${n === 1 ? "story" : "stories"}, marked “Just in”.` : "Feed refreshed. No new stories yet.");
 }
 
 async function refresh() {
@@ -341,15 +356,20 @@ async function refresh() {
   refreshing = true;
   refreshBtn.classList.add("is-spinning");
   refreshBtn.disabled = true;
+  freshBtn.disabled = true;
+  freshBtn.textContent = "Loading new stories…";
   try {
-    const data = pending || (await fetchNews());
-    apply(data, countNew(data));
+    let data;
+    try { data = await fetchNews(); } catch (e) { if (pending) data = pending; else throw e; }
+    apply(data);
   } catch {
     toast("Couldn't reach the news. Try again in a moment.");
+    showPending();
   } finally {
     refreshing = false;
     refreshBtn.classList.remove("is-spinning");
     refreshBtn.disabled = false;
+    freshBtn.disabled = false;
   }
 }
 refreshBtn.addEventListener("click", refresh);
